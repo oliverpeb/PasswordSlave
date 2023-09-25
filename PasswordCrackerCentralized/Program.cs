@@ -16,47 +16,34 @@ namespace PasswordCrackerCentralized
 
             Cracking cracker = new Cracking();
 
-            try
+            using (TcpClient client = new TcpClient(masterServerIp, masterServerPort))
+            using (NetworkStream stream = client.GetStream())
             {
-                using (TcpClient client = new TcpClient(masterServerIp, masterServerPort))
-                using (NetworkStream stream = client.GetStream())
+                while (true)
                 {
-                    while (true)
+                    // Read dictionary chunk from master server
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
+
+                    if (bytesRead == 0)
                     {
-                        // Read dictionary chunk from master server
-                        byte[] buffer = new byte[1024];
-                        StringBuilder dataBuilder = new StringBuilder();
-
-                        int bytesRead;
-                        do
-                        {
-                            bytesRead = stream.Read(buffer, 0, buffer.Length);
-                            dataBuilder.Append(Encoding.UTF8.GetString(buffer, 0, bytesRead));
-                        }
-                        while (stream.DataAvailable);
-
-                        string dictionaryChunk = dataBuilder.ToString();
-                        if (string.IsNullOrEmpty(dictionaryChunk)) break;
-
-                        File.WriteAllText("temp_chunk.txt", dictionaryChunk);
-
-                        List<UserInfoClearText> results = cracker.RunCracking(dictionaryChunk); // get the results
-
-                        // Convert results to a string and send them to the master
-                        string resultsString = string.Join("\n", results);
-                        byte[] resultsBytes = Encoding.UTF8.GetBytes(resultsString);
-                        stream.Write(resultsBytes, 0, resultsBytes.Length);
+                        // No more data, or connection closed by master
+                        break;
                     }
+
+                    string dictionaryChunk = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+                    File.WriteAllText("temp_chunk.txt", dictionaryChunk);
+
+                    List<UserInfoClearText> results = cracker.RunCracking(); // get the results
+
+                    // Convert results to a string and send them to the master
+                    string resultsString = string.Join("\n", results);
+                    byte[] resultsBytes = Encoding.UTF8.GetBytes(resultsString);
+                    stream.Write(resultsBytes, 0, resultsBytes.Length);
                 }
-            }
-            catch (SocketException se)
-            {
-                Console.WriteLine($"SocketException: {se.Message}");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Exception: {e.Message}");
             }
         }
     }
+
 }
