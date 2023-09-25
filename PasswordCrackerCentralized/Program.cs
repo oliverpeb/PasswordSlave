@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Net;
 
 namespace PasswordCrackerCentralized
 {
@@ -11,8 +12,9 @@ namespace PasswordCrackerCentralized
     {
         static void Main()
         {
-            const string masterServerIp = "172.20.10.2";
-            const int masterServerPort = 12345;
+            const string masterServerIp = "172.20.10.13";
+            const int masterServerPort = 6789;
+            int counter = 0;
 
             Cracking cracker = new Cracking();
 
@@ -23,6 +25,8 @@ namespace PasswordCrackerCentralized
                 {
                     while (true)
                     {
+                        counter++;
+                        Console.WriteLine($"Chunk number: {counter}");
                         // Read dictionary chunk from master server
                         byte[] buffer = new byte[1024];
                         StringBuilder dataBuilder = new StringBuilder();
@@ -51,7 +55,7 @@ namespace PasswordCrackerCentralized
             }
             catch (SocketException se)
             {
-                Console.WriteLine($"SocketException: {se.Message}");
+                Console.WriteLine($"SocketException: {se.Message} (Error Code: {se.ErrorCode})");
             }
             catch (Exception e)
             {

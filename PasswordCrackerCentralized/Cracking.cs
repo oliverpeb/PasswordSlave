@@ -32,7 +32,7 @@ namespace PasswordCrackerCentralized
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             // Load the passwords file. This remains unchanged.
-            List<UserInfo> userInfos = PasswordFileHandler.ReadPasswordFile("passwords.txt");
+            List<UserInfo> userInfos = PasswordFileHandler.ReadPasswordFile(@"C:\Users\mikke\Desktop\Security\passwords.txt");
             Console.WriteLine("passwd opened");
 
             List<UserInfoClearText> result = new List<UserInfoClearText>();
@@ -47,6 +47,8 @@ namespace PasswordCrackerCentralized
             }
 
             stopwatch.Stop();
+            string lastLine = dictionaryEntries.Last().ToString();
+            Console.WriteLine($"Last line is: {lastLine}");
             Console.WriteLine(string.Join(", ", result));
             Console.WriteLine("Out of {0} password {1} was found ", userInfos.Count, result.Count);
             Console.WriteLine();
