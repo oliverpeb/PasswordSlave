@@ -31,17 +31,20 @@ namespace PasswordCrackerCentralized
                         byte[] buffer = new byte[1024];
                         StringBuilder dataBuilder = new StringBuilder();
 
-                    if (bytesRead == 0)
-                    {
-                        // No more data, or connection closed by master
-                        break;
-                    }
+                        int bytesRead;
+                        do
+                        {
+                            bytesRead = stream.Read(buffer, 0, buffer.Length);
+                            dataBuilder.Append(Encoding.UTF8.GetString(buffer, 0, bytesRead));
+                        }
+                        while (stream.DataAvailable);
 
-                    string dictionaryChunk = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        string dictionaryChunk = dataBuilder.ToString();
+                        if (string.IsNullOrEmpty(dictionaryChunk)) break;
 
-                    File.WriteAllText("temp_chunk.txt", dictionaryChunk);
+                        File.WriteAllText("temp_chunk.txt", dictionaryChunk);
 
-                    List<UserInfoClearText> results = cracker.RunCracking(); // get the results
+                        List<UserInfoClearText> results = cracker.RunCracking(dictionaryChunk); // get the results
 
                         // Convert results to a string and send them to the master
                         string resultsString = string.Join("\n", results);
